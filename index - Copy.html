@@ -1,0 +1,2294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joel — UX &amp; Experience Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1B2A4A;
+    --navy-deep: #111d33;
+    --accent: #2E75B6;
+    --accent-light: #5B9BD5;
+    --accent-muted: #d0e4f5;
+    --warm: #E8E0D5;
+    --text: #1B2A4A;
+    --text-mid: #4A6080;
+    --text-light: #7A90A8;
+    --bg: #F8F6F3;
+    --bg-card: #FFFFFF;
+    --border: rgba(27,42,74,0.10);
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 4rem;
+    background: rgba(248,246,243,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-name {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+  }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--text-mid);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* ── HERO ───────────────────────────────── */
+  /*
+   * Scroll-driven reveal:
+   * .hero-container is 200vh tall — creates the scroll "runway".
+   * .hero is sticky so it stays pinned while you scroll through the runway.
+   * .hero-left starts at 100% width (full screen) and contracts to ~50%.
+   * .hero-right is absolutely positioned on the right 50% and hidden
+   *  behind the left panel until it withdraws.
+   */
+  .hero-container {
+    height: 200vh;
+  }
+  .hero {
+    position: sticky;
+    top: 80px; /* below fixed nav */
+    height: calc(100vh - 80px);
+    overflow: hidden;
+  }
+  .hero-left {
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 100%; /* JS animates this from 100% → ~50% */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6rem 3rem 6rem 4rem;
+    background: var(--navy-deep);
+    overflow: hidden;
+    z-index: 2;
+    will-change: width;
+  }
+  /* Particle canvas – sits behind all hero-left content */
+  #hero-particles {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-left > *:not(canvas) {
+    position: relative;
+    z-index: 1;
+  }
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.1s;
+  }
+  .hero-name {
+    font-family: var(--serif);
+    font-size: clamp(2.8rem, 4vw, 4rem);
+    line-height: 1.05;
+    color: #F0EDE8;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+  .hero-name em {
+    font-style: italic;
+    color: var(--accent-light);
+  }
+  .hero-desc {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: rgba(240,237,232,0.65);
+    max-width: 440px;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.35s;
+  }
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--accent-light);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(91,155,213,0.35);
+    padding: 0.75rem 1.5rem;
+    border-radius: 2px;
+    transition: all 0.2s;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.45s;
+  }
+  .hero-cta:hover {
+    background: rgba(91,155,213,0.1);
+    border-color: var(--accent-light);
+  }
+  .hero-right {
+    position: absolute;
+    top: 0; bottom: 0; right: 0;
+    width: 50%; /* always occupies the right half — revealed as left withdraws */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem 4rem 4rem 5rem;
+    background: var(--warm);
+    z-index: 1;
+    opacity: 0;           /* JS fades this in */
+    transform: translateX(24px); /* subtle slide-in from right */
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .hero-right.revealed {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: rgba(27,42,74,0.12);
+    border: 1px solid rgba(27,42,74,0.12);
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.3s;
+  }
+  .stat {
+    background: var(--warm);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .stat-num {
+    font-family: var(--serif);
+    font-size: 2.2rem;
+    color: var(--navy);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-mid);
+    font-weight: 400;
+    letter-spacing: 0.03em;
+  }
+  .hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.5s;
+  }
+  .tag {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-mid);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.85rem;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.5);
+    letter-spacing: 0.02em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .tag:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── SECTION COMMON ─────────────────────── */
+  section { padding: 6rem 4rem; }
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.25;
+    max-width: 60px;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    color: var(--navy);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .section-intro {
+    font-size: 1rem;
+    color: var(--text-mid);
+    max-width: 620px;
+    line-height: 1.8;
+    font-weight: 300;
+    margin-bottom: 3.5rem;
+  }
+
+  /* ── WORK ───────────────────────────────── */
+  #work { background: var(--bg-card); }
+  .work-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+  .work-card {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 2.25rem;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: default;
+  }
+  .work-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .work-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(27,42,74,0.09); }
+  .work-card:hover::before { transform: scaleX(1); }
+  .work-card-client {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+  .work-card-title {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    color: var(--navy);
+    line-height: 1.25;
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+  }
+  .work-card-body {
+    font-size: 0.9rem;
+    color: var(--text-mid);
+    line-height: 1.75;
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+  }
+  .work-card-outcome {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    background: var(--accent-muted);
+    border-radius: 2px;
+    font-size: 0.82rem;
+    color: var(--navy);
+    line-height: 1.5;
+    font-weight: 400;
+  }
+  .outcome-icon {
+    width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px;
+    color: var(--accent);
+  }
+  .work-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+  }
+  .work-tag {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+  }
+
+  /* ── EXPANDABLE CARDS ───────────────────── */
+  .work-card { cursor: pointer; }
+  .work-card.expanded {
+    grid-column: 1 / -1;
+    cursor: default;
+    transform: none !important;
+    box-shadow: 0 16px 48px rgba(27,42,74,0.10) !important;
+  }
+  .work-card.expanded::before { transform: scaleX(1) !important; }
+
+  .card-explore-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 1.25rem;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .work-card:not(.expanded):hover .card-explore-hint { opacity: 1; }
+
+  .card-expanded-content {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.6s ease, opacity 0.35s ease 0.15s;
+  }
+  .work-card.expanded .card-expanded-content {
+    max-height: 2000px;
+    opacity: 1;
+  }
+  .expanded-inner {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 3rem;
+    align-items: start;
+    padding-top: 2rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .card-close {
+    float: right;
+    margin: 0 0 1rem 1.5rem;
+    background: none;
+    border: 1px solid var(--border);
+    width: 30px; height: 30px;
+    border-radius: 2px;
+    cursor: pointer;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s, color 0.2s;
+    flex-shrink: 0;
+  }
+  .card-close:hover { border-color: var(--accent); color: var(--accent); }
+
+  .narrative-chapter {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.5rem;
+    margin-top: 1.5rem;
+  }
+  .narrative-chapter:first-of-type { margin-top: 0; }
+  .expanded-narrative p {
+    font-size: 0.9rem;
+    color: var(--text-mid);
+    line-height: 1.85;
+    font-weight: 300;
+  }
+  .expanded-visuals { display: flex; flex-direction: column; gap: 1.5rem; }
+  .visual-block svg { width: 100%; height: auto; display: block; }
+  .visual-caption {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    font-weight: 300;
+    display: block;
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+  @media (max-width: 900px) {
+    .expanded-inner { grid-template-columns: 1fr; }
+    .work-card.expanded { grid-column: auto; }
+  }
+
+  /* ── ABOUT ──────────────────────────────── */
+  #about { background: var(--navy-deep); }
+  #about .section-label { color: var(--accent-light); }
+  #about .section-label::after { background: var(--accent-light); }
+  #about .section-title { color: #F0EDE8; }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 5rem;
+    align-items: start;
+  }
+  .about-body p {
+    font-size: 0.975rem;
+    color: rgba(240,237,232,0.7);
+    line-height: 1.85;
+    font-weight: 300;
+    margin-bottom: 1.25rem;
+  }
+  .about-body p strong {
+    color: rgba(240,237,232,0.95);
+    font-weight: 500;
+  }
+
+  /* ── CAREER TIMELINE ────────────────────── */
+  .timeline-heading {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .timeline-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(91,155,213,0.25);
+  }
+  .timeline-track {
+    position: relative;
+    padding-left: 1.25rem;
+  }
+  .timeline-track::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: linear-gradient(180deg,
+      rgba(91,155,213,0.5) 0%,
+      rgba(91,155,213,0.15) 100%);
+  }
+  .t-node {
+    position: relative;
+    padding: 0 0 1.6rem 1.5rem;
+    cursor: pointer;
+  }
+  .t-node:last-child { padding-bottom: 0; }
+  .t-dot {
+    position: absolute;
+    left: -4px;
+    top: 7px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--navy-deep);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .t-node:hover .t-dot,
+  .t-node.open .t-dot {
+    transform: scale(1.5);
+    box-shadow: 0 0 0 5px rgba(91,155,213,0.2);
+  }
+  .t-year {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--accent-light);
+    display: block;
+    margin-bottom: 0.18rem;
+  }
+  .t-title {
+    font-size: 0.875rem;
+    color: rgba(240,237,232,0.9);
+    font-weight: 400;
+    display: block;
+    line-height: 1.4;
+  }
+  .t-detail {
+    font-size: 0.78rem;
+    color: rgba(240,237,232,0.45);
+    font-weight: 300;
+    line-height: 1.55;
+    display: block;
+    margin-top: 0.35rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.25s ease;
+  }
+  .t-node.open .t-detail {
+    max-height: 6rem;
+    opacity: 1;
+    margin-top: 0.4rem;
+  }
+
+  /* De-emphasised nodes — non-design roles */
+  .t-node--minor {
+    padding-bottom: 1rem;
+  }
+  .t-node--minor .t-dot {
+    width: 6px;
+    height: 6px;
+    left: -3px;
+    top: 8px;
+    background: transparent;
+    border: 1.5px solid rgba(91,155,213,0.4);
+  }
+  .t-node--minor:hover .t-dot,
+  .t-node--minor.open .t-dot {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 4px rgba(91,155,213,0.1);
+  }
+  .t-node--minor .t-year {
+    color: rgba(91,155,213,0.55);
+    font-size: 0.63rem;
+  }
+  .t-node--minor .t-title {
+    font-size: 0.78rem;
+    font-style: italic;
+    color: rgba(240,237,232,0.45);
+    font-weight: 300;
+  }
+  /* Early career nodes — design but pre-career */
+  .t-node--early .t-dot {
+    background: rgba(91,155,213,0.45);
+    border-color: var(--navy-deep);
+  }
+  .t-node--early .t-year {
+    color: rgba(91,155,213,0.7);
+  }
+  .t-node--early .t-title {
+    color: rgba(240,237,232,0.65);
+    font-size: 0.82rem;
+  }
+
+  /* ── SKILLS ─────────────────────────────── */
+  #skills { background: var(--warm); }
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+  .skill-group {
+    padding: 1.75rem;
+    background: rgba(255,255,255,0.55);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.25s;
+  }
+  .skill-group:hover {
+    box-shadow: 0 8px 30px rgba(27,42,74,0.07);
+  }
+  /* Animated icon in top-right corner */
+  .skill-icon {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 36px;
+    height: 36px;
+    opacity: 0.18;
+    transition: opacity 0.3s;
+  }
+  .skill-group:hover .skill-icon { opacity: 0.35; }
+  .skill-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Draw-in animation via stroke-dashoffset */
+  .skill-icon svg path,
+  .skill-icon svg circle,
+  .skill-icon svg polyline,
+  .skill-icon svg line,
+  .skill-icon svg ellipse {
+    stroke-dasharray: 300;
+    stroke-dashoffset: 300;
+    transition: stroke-dashoffset 1.1s cubic-bezier(0.4,0,0.2,1);
+  }
+  .skill-group.icon-drawn .skill-icon svg path,
+  .skill-group.icon-drawn .skill-icon svg circle,
+  .skill-group.icon-drawn .skill-icon svg polyline,
+  .skill-group.icon-drawn .skill-icon svg line,
+  .skill-group.icon-drawn .skill-icon svg ellipse {
+    stroke-dashoffset: 0;
+  }
+  .skill-group-title {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    padding-right: 3rem; /* space for icon */
+  }
+  .skill-list { list-style: none; }
+  .skill-list li {
+    font-size: 0.875rem;
+    color: var(--text-mid);
+    padding: 0.3rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 300;
+  }
+  .skill-list li::before {
+    content: '';
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* ── CONTACT ────────────────────────────── */
+  #contact {
+    background: var(--bg-card);
+    text-align: center;
+    padding: 7rem 4rem;
+  }
+  #contact .section-label { justify-content: center; }
+  #contact .section-label::after { display: none; }
+  #contact .section-title { margin: 0 auto 1rem; }
+  #contact .section-intro { margin: 0 auto 2.5rem; }
+  .contact-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .contact-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--bg-card);
+    background: var(--navy);
+    padding: 0.9rem 2rem;
+    border-radius: 2px;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: background 0.2s;
+    border: none;
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+  .contact-link:hover { background: var(--accent); }
+  .contact-link-alt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--navy);
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 0.9rem 2rem;
+    border-radius: 2px;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .contact-link-alt:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── FOOTER ─────────────────────────────── */
+  footer {
+    padding: 1.5rem 4rem;
+    background: var(--navy-deep);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  footer p {
+    font-size: 0.78rem;
+    color: rgba(240,237,232,0.35);
+    font-weight: 300;
+  }
+
+  /* ── ANIMATIONS ─────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── RESPONSIVE ─────────────────────────── */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { gap: 1.5rem; }
+    .hero-container { height: auto; }
+    .hero {
+      position: relative;
+      top: 0;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      overflow: visible;
+    }
+    .hero-left {
+      position: relative;
+      width: 100% !important;
+      padding: 5rem 1.5rem 3rem;
+      min-height: 60vh;
+    }
+    .hero-right {
+      position: relative;
+      right: auto;
+      width: 100% !important;
+      padding: 3rem 1.5rem;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .scroll-hint { display: none; }
+    .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+    section { padding: 4rem 1.5rem; }
+    footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+    .contact-modal { padding: 2rem 1.25rem; }
+  }
+
+  /* ── NAV ACTIVE STATE ───────────────────── */
+  .nav-links a.nav-active { color: var(--accent); }
+
+  /* ── TIMELINE CURRENT PULSE ─────────────── */
+  @keyframes pulseRing {
+    0%   { box-shadow: 0 0 0 0 rgba(91,155,213,0.55); }
+    70%  { box-shadow: 0 0 0 9px rgba(91,155,213,0); }
+    100% { box-shadow: 0 0 0 0 rgba(91,155,213,0); }
+  }
+  .t-node--current .t-dot {
+    background: var(--accent-light);
+    animation: pulseRing 2.2s ease-out infinite;
+  }
+
+  /* ── CONTACT MODAL ──────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17,29,51,0.72);
+    backdrop-filter: blur(10px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .contact-modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 460px;
+    padding: 2.5rem;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.35s ease;
+    box-shadow: 0 32px 80px rgba(17,29,51,0.22);
+  }
+  .modal-overlay.open .contact-modal { transform: translateY(0); }
+  .modal-close {
+    position: absolute;
+    top: 1.1rem; right: 1.1rem;
+    background: none;
+    border: 1px solid var(--border);
+    width: 30px; height: 30px;
+    border-radius: 2px;
+    cursor: pointer;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .modal-close:hover { border-color: var(--accent); color: var(--accent); }
+  .modal-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .modal-title {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 0.4rem;
+  }
+  .modal-desc {
+    font-size: 0.875rem;
+    color: var(--text-mid);
+    font-weight: 300;
+    margin-bottom: 1.75rem;
+  }
+  .form-group { margin-bottom: 1rem; }
+  .form-group label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: 0.35rem;
+  }
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.65rem 0.85rem;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    color: var(--text);
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus { border-color: var(--accent); }
+  .form-group textarea { min-height: 100px; }
+  .form-submit {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.9rem;
+    background: var(--navy);
+    color: #F0EDE8;
+    border: none;
+    border-radius: 2px;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    transition: background 0.2s;
+  }
+  .form-submit:hover:not(:disabled) { background: var(--accent); }
+  .form-submit:disabled { opacity: 0.65; cursor: not-allowed; }
+  .form-spinner {
+    width: 15px; height: 15px;
+    border: 2px solid rgba(240,237,232,0.3);
+    border-top-color: #F0EDE8;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .form-submit.loading .form-spinner { display: block; }
+  .form-submit.loading .form-btn-text { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .form-sent {
+    text-align: center;
+    padding: 1.5rem 0 0.5rem;
+  }
+  .form-sent-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--accent-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+  }
+  .form-sent-icon svg { color: var(--accent); }
+  .form-sent h4 {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    color: var(--navy);
+    margin-bottom: 0.4rem;
+  }
+  .form-sent p {
+    font-size: 0.875rem;
+    color: var(--text-mid);
+    font-weight: 300;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-name">Joel</span>
+  <ul class="nav-links">
+    <li><a href="#work">Work</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────── -->
+<div class="hero-container">
+<section class="hero">
+  <div class="hero-left">
+    <canvas id="hero-particles"></canvas>
+    <p class="hero-eyebrow">UX &amp; Experience Designer &nbsp;·&nbsp; Sydney, AU</p>
+    <h1 class="hero-name">Design that<br><em>works</em> in the<br>real world.</h1>
+    <p class="hero-desc">A decade of delivering user-centred solutions across global consultancies, federal government, and start-ups. From $1M+ digital transformations to AI-powered internal tooling. Rigorous process, measurable outcomes.</p>
+    <a href="#work" class="hero-cta">
+      View selected work
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+  <div class="hero-right">
+    <div class="stats-grid">
+      <div class="stat">
+        <span class="stat-num" data-prefix="" data-target="10" data-suffix="+">10+</span>
+        <span class="stat-label">Years across design &amp; strategy</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" data-prefix="$" data-target="1" data-suffix="M+">$1M+</span>
+        <span class="stat-label">Project delivery value</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" data-prefix="+" data-target="20" data-suffix="%">+20%</span>
+        <span class="stat-label">ADF application completion uplift</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" data-prefix="" data-target="2" data-suffix="M+">2M+</span>
+        <span class="stat-label">Users impacted across projects</span>
+      </div>
+    </div>
+    <div class="hero-tags">
+      <span class="tag">User Research</span>
+      <span class="tag">Information Architecture</span>
+      <span class="tag">Prototyping</span>
+      <span class="tag">Service Design</span>
+      <span class="tag">Stakeholder Facilitation</span>
+      <span class="tag">AI Tool Design</span>
+      <span class="tag">Heuristic Analysis</span>
+      <span class="tag">Workshop Design</span>
+    </div>
+  </div>
+</section>
+</div><!-- /.hero-container -->
+
+<!-- ── WORK ──────────────────────────────────── -->
+<section id="work">
+  <div class="section-label">Selected Work</div>
+  <h2 class="section-title">Work that actually shipped.</h2>
+  <p class="section-intro">A selection of engagements spanning digital transformation, service design, and AI-powered product development. Each one involved turning a messy problem into a working solution within real constraints.</p>
+
+  <div class="work-grid">
+
+    <!-- ── CARD 1: ADF ── -->
+    <div class="work-card reveal">
+      <div class="work-card-client">VMLY&amp;R · Federal Government</div>
+      <h3 class="work-card-title">ADF Careers Digital Transformation</h3>
+      <p class="work-card-body">Co-led the UX overhaul of the Australian Defence Force recruitment platform. Uncovered that ~40% of recruits were changing their role of interest mid-pipeline — a signal that misaligned expectations were driving post-enlistment attrition. Built the internal case for a personalisation feature stream and consolidated a 200+ page, four-domain architecture into a coherent 100-page single domain.</p>
+      <div class="work-card-outcome">
+        <svg class="outcome-icon" viewBox="0 0 16 16" fill="none"><path d="M3 13l3-3 2.5 2.5L13 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>20% uplift in application completion rates. Client proceeded with personalisation features beyond initial scope.</span>
+      </div>
+      <div class="work-card-tags">
+        <span class="work-tag">UX Research</span>
+        <span class="work-tag">Information Architecture</span>
+        <span class="work-tag">Stakeholder Management</span>
+        <span class="work-tag">Prototyping</span>
+        <span class="work-tag">Data Analysis</span>
+      </div>
+      <div class="card-explore-hint" aria-hidden="true">Explore this project <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="card-expanded-content">
+        <div class="expanded-inner">
+          <div class="expanded-narrative">
+            <button class="card-close" aria-label="Close">&#x2715;</button>
+            <span class="narrative-chapter">The Problem</span>
+            <p>The ADF Careers platform processed hundreds of thousands of visitors but nobody had modelled what was actually happening once candidates entered the pipeline. When I mapped the data, a pattern emerged: roughly 40% of candidates were changing their role of interest partway through the process. That isn't just a UX problem — it means the platform was generating enrollees who had already self-selected into a mismatched role, creating a post-enlistment attrition problem that was expensive and almost invisible from the outside.</p>
+            <span class="narrative-chapter">The Approach</span>
+            <p>I built the internal case for a personalisation feature stream, assembled a cross-functional team of five, and ran two sprint workshops to scope and stage-gate the solution. The feature set included zero-party data surfacing at entry, a three-role comparison tool, and progressive content complexity tied to pipeline stage — so a candidate just browsing saw different content to one who had committed to assessment. In parallel, I restructured the information architecture, consolidating a 200+ page, four-domain site into a coherent 100-page single domain. The infrastructure change made the experience change possible.</p>
+            <span class="narrative-chapter">The Result</span>
+            <p>Application completion rates increased by 20%. The client proceeded with the personalisation features beyond the original scope — which in consulting terms means the work held up under scrutiny and the team trusted the rationale behind it.</p>
+          </div>
+          <div class="expanded-visuals">
+            <div class="visual-block">
+              <svg viewBox="0 0 400 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">THE INVISIBLE LEAK IN THE RECRUITMENT PIPELINE</text>
+                <rect x="4" y="28" width="62" height="30" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="35" y="45" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Candidate</text>
+                <text x="35" y="54" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Enters</text>
+                <path d="M66 43 L80 43" stroke="#5B9BD5" stroke-width="1.5"/><path d="M76 39 L84 43 L76 47" fill="#5B9BD5"/>
+                <rect x="84" y="28" width="62" height="30" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="115" y="45" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Considers</text>
+                <text x="115" y="54" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Options</text>
+                <path d="M146 43 L160 43" stroke="#5B9BD5" stroke-width="1.5"/><path d="M156 39 L164 43 L156 47" fill="#5B9BD5"/>
+                <path d="M155 57 L155 105" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="3,2.5"/>
+                <path d="M151 101 L155 109 L159 101" fill="#c0392b"/>
+                <rect x="164" y="88" width="130" height="48" rx="2" fill="#fff6f5" stroke="#c0392b" stroke-width="1"/>
+                <text x="175" y="107" font-family="system-ui,sans-serif" font-size="18" font-weight="600" fill="#c0392b">40%</text>
+                <text x="207" y="107" font-family="system-ui,sans-serif" font-size="8" fill="#4A6080"> switch role mid-pipeline</text>
+                <text x="175" y="121" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">&#x2192; misaligned expectations</text>
+                <text x="175" y="133" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">&#x2192; post-enlistment attrition</text>
+                <rect x="164" y="28" width="62" height="30" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="195" y="45" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Applies</text>
+                <path d="M226 43 L240 43" stroke="#5B9BD5" stroke-width="1.5"/><path d="M236 39 L244 43 L236 47" fill="#5B9BD5"/>
+                <rect x="244" y="28" width="62" height="30" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="275" y="45" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Assesses</text>
+                <path d="M306 43 L320 43" stroke="#5B9BD5" stroke-width="1.5"/><path d="M316 39 L324 43 L316 47" fill="#5B9BD5"/>
+                <rect x="324" y="28" width="72" height="30" rx="2" fill="#2E75B6"/>
+                <text x="360" y="45" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">Enlists</text>
+                <text x="360" y="54" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="rgba(255,255,255,0.65)">with confidence</text>
+              </svg>
+              <span class="visual-caption">The 40% role-change signal was the catalyst for the entire personalisation stream</span>
+            </div>
+            <div class="visual-block">
+              <svg viewBox="0 0 400 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">INFORMATION ARCHITECTURE — BEFORE &amp; AFTER</text>
+                <text x="80" y="30" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#4A6080">BEFORE</text>
+                <rect x="8" y="36" width="34" height="13" rx="1" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="0.75"/><text x="25" y="46" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#1B2A4A">Army</text>
+                <rect x="48" y="36" width="34" height="13" rx="1" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="0.75"/><text x="65" y="46" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#1B2A4A">Navy</text>
+                <rect x="88" y="36" width="34" height="13" rx="1" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="0.75"/><text x="105" y="46" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#1B2A4A">Air Force</text>
+                <rect x="128" y="36" width="34" height="13" rx="1" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="0.75"/><text x="145" y="46" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#1B2A4A">General</text>
+                <rect x="8" y="54" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="8" y="64" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="8" y="74" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="8" y="84" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="8" y="94" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="48" y="54" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="48" y="64" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="48" y="74" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="48" y="84" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="88" y="54" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="88" y="64" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="88" y="74" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="128" y="54" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="128" y="64" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="128" y="74" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="128" y="84" width="34" height="7" rx="1" fill="#eef4fb" stroke="#5B9BD5" stroke-width="0.5"/>
+                <text x="80" y="118" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#c0392b">200+ pages &bull; 4 domains</text>
+                <path d="M178 72 L198 72" stroke="#1B2A4A" stroke-width="2"/><path d="M193 67 L202 72 L193 77" fill="#1B2A4A"/>
+                <text x="300" y="30" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#4A6080">AFTER</text>
+                <rect x="252" y="36" width="96" height="16" rx="2" fill="#2E75B6"/>
+                <text x="300" y="48" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">ADF Careers (unified)</text>
+                <line x1="300" y1="52" x2="300" y2="60" stroke="#5B9BD5" stroke-width="0.75"/>
+                <rect x="268" y="60" width="64" height="9" rx="1" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="268" y="73" width="64" height="9" rx="1" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="268" y="86" width="64" height="9" rx="1" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="0.5"/>
+                <rect x="268" y="99" width="64" height="9" rx="1" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="0.5"/>
+                <text x="300" y="118" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#27ae60">100 pages &bull; 1 domain</text>
+              </svg>
+              <span class="visual-caption">Consolidating four siloed architectures into one coherent domain was the foundation for personalisation</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CARD 2: AssuranceLab ── -->
+    <div class="work-card reveal">
+      <div class="work-card-client">AssuranceLab · Global Fintech</div>
+      <h3 class="work-card-title">AI-Powered Internal Support Tool</h3>
+      <p class="work-card-body">Identified a 12-hour communication lag across AU, EMEA, and US time zones creating a compounding risk for a consulting team expected to double its client portfolio. Built a business case that secured founder backing, packaged the context bundle, and iterated the AI tool from a closed founder pilot through to full team deployment.</p>
+      <div class="work-card-outcome">
+        <svg class="outcome-icon" viewBox="0 0 16 16" fill="none"><path d="M3 13l3-3 2.5 2.5L13 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Eliminated response delays. Supported team capacity to more than double client workload. Contributed to successful company acquisition.</span>
+      </div>
+      <div class="work-card-tags">
+        <span class="work-tag">AI Tool Design</span>
+        <span class="work-tag">Service Design</span>
+        <span class="work-tag">Business Case</span>
+        <span class="work-tag">User Testing</span>
+      </div>
+      <div class="card-explore-hint" aria-hidden="true">Explore this project <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="card-expanded-content">
+        <div class="expanded-inner">
+          <div class="expanded-narrative">
+            <button class="card-close" aria-label="Close">&#x2715;</button>
+            <span class="narrative-chapter">The Problem</span>
+            <p>AssuranceLab was a fast-growing cybersecurity compliance consultancy operating across AU, EMEA, and the US without any off-hours support mechanism. When a junior consultant in Australia needed to answer a client question at 9am, the senior who knew the answer was asleep in New York. That 12-hour dead zone was a structural problem, not a staffing one — and it was about to get worse, because the firm was planning to double its client load.</p>
+            <span class="narrative-chapter">The Approach</span>
+            <p>I identified the pattern, quantified the risk, and wrote a business case that got founder backing. Then I built it: I packaged the context bundle myself — SOC2 evidence frameworks, client-facing response patterns, tool logic for Vanta and Drata — and iterated the AI tool through a closed pilot with the founder before expanding it. It wasn't designed as a replacement for expertise; it was designed to give new consultants a confident first answer at 2am so senior staff could focus on work that actually required their judgment.</p>
+            <span class="narrative-chapter">The Result</span>
+            <p>Response delays were eliminated. The team's capacity to handle client work more than doubled without a proportional increase in headcount. The company was acquired — and the AI capability was part of what made the operational model compelling to the acquirer.</p>
+          </div>
+          <div class="expanded-visuals">
+            <div class="visual-block">
+              <!-- SVG: 24hr Timezone Dead Zone -->
+              <svg viewBox="0 0 400 148" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">THE 12-HOUR COMMUNICATION DEAD ZONE</text>
+                <!-- 24hr axis -->
+                <text x="28" y="32" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">12am</text>
+                <text x="118" y="32" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">6am</text>
+                <text x="208" y="32" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">12pm</text>
+                <text x="298" y="32" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">6pm</text>
+                <text x="372" y="32" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">12am</text>
+                <!-- Dead zone highlight (approx 6pm AU = midnight US = gap) -->
+                <rect x="30" y="36" width="370" height="103" rx="0" fill="#f8f6f3"/>
+                <rect x="296" y="36" width="74" height="103" rx="0" fill="#fff0ef" opacity="0.7"/>
+                <text x="333" y="75" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#c0392b" font-weight="500">DEAD</text>
+                <text x="333" y="86" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#c0392b" font-weight="500">ZONE</text>
+                <text x="333" y="97" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#c0392b">~12 hrs</text>
+                <line x1="296" y1="36" x2="296" y2="139" stroke="#c0392b" stroke-width="1" stroke-dasharray="3,2"/>
+                <line x1="370" y1="36" x2="370" y2="139" stroke="#c0392b" stroke-width="1" stroke-dasharray="3,2"/>
+                <!-- AU row -->
+                <text x="28" y="56" font-family="system-ui,sans-serif" font-size="8" fill="#4A6080">AU</text>
+                <rect x="30" y="44" width="74" height="16" rx="2" fill="#2E75B6" opacity="0.85"/>
+                <text x="67" y="55" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="white">Active (8am–6pm)</text>
+                <!-- EMEA row -->
+                <text x="28" y="88" font-family="system-ui,sans-serif" font-size="8" fill="#4A6080">EMEA</text>
+                <rect x="104" y="76" width="74" height="16" rx="2" fill="#5B9BD5" opacity="0.85"/>
+                <text x="141" y="87" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="white">Active (9am–5pm)</text>
+                <!-- US row -->
+                <text x="28" y="120" font-family="system-ui,sans-serif" font-size="8" fill="#4A6080">US</text>
+                <rect x="178" y="108" width="88" height="16" rx="2" fill="#5B9BD5" opacity="0.6"/>
+                <text x="222" y="119" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#1B2A4A">Active (9am–5pm)</text>
+                <!-- Bracket/label -->
+                <text x="200" y="141" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">All times local &bull; Red zone = no senior coverage globally</text>
+              </svg>
+              <span class="visual-caption">The gap between AU close-of-day and US start-of-day left the team with no expert cover for roughly half the clock</span>
+            </div>
+            <div class="visual-block">
+              <!-- SVG: Phased Rollout -->
+              <svg viewBox="0 0 400 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">DEPLOYMENT — STAGED ROLLOUT TO ACQUISITION</text>
+                <!-- Track line -->
+                <line x1="40" y1="52" x2="360" y2="52" stroke="#d0e4f5" stroke-width="2"/>
+                <!-- Nodes -->
+                <circle cx="40"  cy="52" r="8" fill="#2E75B6"/>
+                <circle cx="120" cy="52" r="8" fill="#2E75B6"/>
+                <circle cx="200" cy="52" r="8" fill="#2E75B6"/>
+                <circle cx="280" cy="52" r="8" fill="#2E75B6"/>
+                <circle cx="360" cy="52" r="10" fill="#1B2A4A"/>
+                <!-- Tick marks on line -->
+                <line x1="120" y1="44" x2="120" y2="60" stroke="#2E75B6" stroke-width="1.5"/>
+                <line x1="200" y1="44" x2="200" y2="60" stroke="#2E75B6" stroke-width="1.5"/>
+                <line x1="280" y1="44" x2="280" y2="60" stroke="#2E75B6" stroke-width="1.5"/>
+                <!-- Labels above -->
+                <text x="40"  y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Business</text>
+                <text x="40"  y="27" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Case</text>
+                <text x="120" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Founder</text>
+                <text x="120" y="27" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Pilot</text>
+                <text x="200" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Closed</text>
+                <text x="200" y="27" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Beta</text>
+                <text x="280" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Full</text>
+                <text x="280" y="27" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Team</text>
+                <text x="360" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Company</text>
+                <text x="360" y="27" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Acquired</text>
+                <!-- Sub-labels below -->
+                <text x="40"  y="70" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#7A90A8">Founder</text>
+                <text x="40"  y="79" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#7A90A8">sign-off</text>
+                <text x="120" y="70" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#7A90A8">Context</text>
+                <text x="120" y="79" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#7A90A8">packaged</text>
+                <text x="200" y="70" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#7A90A8">Iterated &amp;</text>
+                <text x="200" y="79" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#7A90A8">validated</text>
+                <text x="280" y="70" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#7A90A8">Zero</text>
+                <text x="280" y="79" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#7A90A8">lag</text>
+                <text x="360" y="70" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#1B2A4A" font-weight="500">AI as</text>
+                <text x="360" y="79" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" fill="#1B2A4A" font-weight="500">asset</text>
+              </svg>
+              <span class="visual-caption">Each stage was validated before expanding — the tool earned its rollout rather than being mandated</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CARD 3: EDConnect ── -->
+    <div class="work-card reveal">
+      <div class="work-card-client">Agency Xi &mdash; NSW Dept of Education</div>
+      <h3 class="work-card-title">EDConnect Ways of Working Playbook</h3>
+      <p class="work-card-body">Embedded within EDConnect's shared services directorate to raise design maturity across 2,200 school communities. Spent 37 hours in the field across six locations, synthesising 500+ data points from 69 stakeholders into a 'Ways of Working' playbook — 29 HCD tools, four personas, a service blueprint, and five strategic plays.</p>
+      <div class="work-card-outcome">
+        <svg class="outcome-icon" viewBox="0 0 16 16" fill="none"><path d="M3 13l3-3 2.5 2.5L13 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>HCD capability built across 880 employees. Playbook adopted organisation-wide.</span>
+      </div>
+      <div class="work-card-tags">
+        <span class="work-tag">Service Design</span>
+        <span class="work-tag">Qualitative Research</span>
+        <span class="work-tag">Workshop Facilitation</span>
+        <span class="work-tag">Change Management</span>
+      </div>
+      <div class="card-explore-hint" aria-hidden="true">Explore this project <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="card-expanded-content">
+        <div class="expanded-inner">
+          <div class="expanded-narrative">
+            <button class="card-close" aria-label="Close">&#x2715;</button>
+            <span class="narrative-chapter">The Problem</span>
+            <p>The NSW Department of Education's EDConnect directorate served 2,200 school communities. The people who worked there were intelligent and committed — and fundamentally stuck. Not because of a lack of effort, but because every team had its own way of working with no shared language for collaboration, problem surfacing, or improvement. Nobody had mapped it. Nobody had asked the staff what they actually needed.</p>
+            <span class="narrative-chapter">The Approach</span>
+            <p>I spent 37 hours in the field across six locations, talking to 69 stakeholders and synthesising more than 500 data points. That research shaped everything: four personas representing the real range of people in the directorate, a service blueprint of the actual current state, and a Ways of Working playbook containing 29 HCD tools and five strategic plays. The 'Walk in My Shoes' train-the-trainer programme was designed to make the capability self-sustaining — we weren't just teaching people tools, we were giving them the confidence to keep using them after we left the engagement.</p>
+            <span class="narrative-chapter">The Result</span>
+            <p>HCD capability was embedded across 880 employees. The playbook was adopted organisation-wide — not just in the team we'd been working with. That kind of spread is the real measure of whether work like this actually lands.</p>
+          </div>
+          <div class="expanded-visuals">
+            <div class="visual-block">
+              <!-- SVG: Research Reach Stats -->
+              <svg viewBox="0 0 400 138" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">THE RESEARCH FOUNDATION</text>
+                <rect x="8"   y="22" width="184" height="52" rx="3" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <rect x="208" y="22" width="184" height="52" rx="3" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <rect x="8"   y="82" width="184" height="52" rx="3" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <rect x="208" y="82" width="184" height="52" rx="3" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="100" y="51" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" font-weight="600" fill="#2E75B6">37</text>
+                <text x="152" y="51" font-family="system-ui,sans-serif" font-size="11" fill="#1B2A4A">hrs</text>
+                <text x="100" y="65" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#4A6080">Field research</text>
+                <text x="300" y="51" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" font-weight="600" fill="#2E75B6">6</text>
+                <text x="318" y="51" font-family="system-ui,sans-serif" font-size="11" fill="#1B2A4A">sites</text>
+                <text x="300" y="65" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#4A6080">Locations visited</text>
+                <text x="100" y="112" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" font-weight="600" fill="#2E75B6">69</text>
+                <text x="100" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#4A6080">Stakeholders interviewed</text>
+                <text x="300" y="108" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" font-weight="600" fill="#2E75B6">500+</text>
+                <text x="300" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#4A6080">Data points synthesised</text>
+              </svg>
+              <span class="visual-caption">The research scale was non-negotiable — you can't design a shared language for an organisation without first understanding how fragmented it really is</span>
+            </div>
+            <div class="visual-block">
+              <!-- SVG: Playbook Hub & Spoke -->
+              <svg viewBox="0 0 400 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">WHAT THE PLAYBOOK CONTAINED</text>
+                <!-- Centre node -->
+                <rect x="140" y="60" width="120" height="40" rx="3" fill="#2E75B6"/>
+                <text x="200" y="77" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="white" font-weight="500">Ways of Working</text>
+                <text x="200" y="89" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="rgba(255,255,255,0.75)">Playbook</text>
+                <!-- Spoke lines -->
+                <line x1="200" y1="60"  x2="200" y2="28"  stroke="#5B9BD5" stroke-width="1"/>
+                <line x1="140" y1="70"  x2="72"  y2="50"  stroke="#5B9BD5" stroke-width="1"/>
+                <line x1="140" y1="90"  x2="72"  y2="118" stroke="#5B9BD5" stroke-width="1"/>
+                <line x1="200" y1="100" x2="200" y2="134" stroke="#5B9BD5" stroke-width="1"/>
+                <line x1="260" y1="90"  x2="328" y2="118" stroke="#5B9BD5" stroke-width="1"/>
+                <line x1="260" y1="70"  x2="328" y2="50"  stroke="#5B9BD5" stroke-width="1"/>
+                <!-- Satellite nodes -->
+                <rect x="148" y="14"  width="104" height="22" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="200" y="28"  text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">29 HCD Tools</text>
+                <rect x="8"   y="38"  width="68"  height="22" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="42"  y="52"  text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">4 Personas</text>
+                <rect x="8"   y="108" width="68"  height="22" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="42"  y="122" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Blueprint</text>
+                <rect x="142" y="134" width="116" height="22" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="200" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">5 Strategic Plays</text>
+                <rect x="320" y="108" width="76"  height="22" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="358" y="120" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Train-the-</text>
+                <text x="358" y="130" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Trainer</text>
+                <rect x="320" y="38"  width="76"  height="22" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="358" y="52"  text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Svc Blueprint</text>
+              </svg>
+              <span class="visual-caption">The train-the-trainer layer was the difference between a deliverable that got filed and one that changed how 880 people worked</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CARD 4: NSW Registry ── -->
+    <div class="work-card reveal">
+      <div class="work-card-client">NSW Registry of Births, Deaths &amp; Marriages</div>
+      <h3 class="work-card-title">Birth Certificate Digitalisation Strategy</h3>
+      <p class="work-card-body">Recruited to produce the baseline before a major digital transformation could be approved. Built the first end-to-end current-state blueprint for a service that had existed for decades without being fully mapped. Stakeholder interviews surfaced a pattern of siloed communication that became the central design problem the future project would need to solve.</p>
+      <div class="work-card-outcome">
+        <svg class="outcome-icon" viewBox="0 0 16 16" fill="none"><path d="M3 13l3-3 2.5 2.5L13 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Insights triggered a digital transformation across all registry services: birth, death and marriage certificates.</span>
+      </div>
+      <div class="work-card-tags">
+        <span class="work-tag">Journey Mapping</span>
+        <span class="work-tag">Voice of Employee</span>
+        <span class="work-tag">Business Case</span>
+        <span class="work-tag">Service Blueprinting</span>
+      </div>
+      <div class="card-explore-hint" aria-hidden="true">Explore this project <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="card-expanded-content">
+        <div class="expanded-inner">
+          <div class="expanded-narrative">
+            <button class="card-close" aria-label="Close">&#x2715;</button>
+            <span class="narrative-chapter">The Problem</span>
+            <p>The NSW Registry had a digital transformation on the horizon — but no one would approve the spend without understanding what was actually being transformed. The service had been running for decades without ever being fully documented end-to-end. My job was to produce the baseline: a current-state view rigorous enough to make the case for what came next.</p>
+            <span class="narrative-chapter">The Approach</span>
+            <p>I ran stakeholder interviews across the key touchpoints in the birth certificate journey — collecting data on what people did, where they got stuck, and what they wanted the service to do instead. What the research surfaced was a structural pattern of siloed communication: teams holding information that other teams needed, with no reliable mechanism for sharing it. I synthesised the findings into a current-state blueprint flagging validated pain points and framing the opportunities a future project could address. The blueprint was validated with key stakeholders before sign-off.</p>
+            <span class="narrative-chapter">The Result</span>
+            <p>The blueprint gave the organisation the evidence it needed to proceed. What followed wasn't just the digitisation of birth certificates — it was a digital transformation across all three certificate types. The scope grew because the research showed the problem was bigger than anyone had assumed going in.</p>
+          </div>
+          <div class="expanded-visuals">
+            <div class="visual-block">
+              <!-- SVG: Silo Communication Diagram -->
+              <svg viewBox="0 0 400 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">THE SILO PROBLEM — INTERNAL COMMUNICATION STATE</text>
+                <!-- Dept boxes -->
+                <rect x="8"   y="26" width="80" height="28" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="48"  y="43" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Registrations</text>
+                <rect x="160" y="26" width="80" height="28" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="200" y="43" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Processing</text>
+                <rect x="312" y="26" width="80" height="28" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="352" y="43" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Records</text>
+                <rect x="8"   y="90" width="80" height="28" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="48"  y="107" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Verification</text>
+                <rect x="312" y="90" width="80" height="28" rx="2" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="352" y="107" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Customer Svc</text>
+                <!-- Broken/dotted connection lines -->
+                <line x1="88"  y1="40" x2="160" y2="40" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <line x1="240" y1="40" x2="312" y2="40" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <line x1="48"  y1="54" x2="48"  y2="90" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <line x1="352" y1="54" x2="352" y2="90" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <line x1="88"  y1="104" x2="312" y2="104" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <!-- Break markers -->
+                <text x="124" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#c0392b">&#x2717;</text>
+                <text x="276" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#c0392b">&#x2717;</text>
+                <text x="200" y="108" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#c0392b">&#x2717;</text>
+                <!-- Citizen box -->
+                <rect x="155" y="132" width="90" height="24" rx="2" fill="#fff6f5" stroke="#c0392b" stroke-width="1"/>
+                <text x="200" y="147" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#c0392b">Citizen — confused</text>
+                <line x1="200" y1="118" x2="200" y2="132" stroke="#c0392b" stroke-width="1" stroke-dasharray="3,2"/>
+              </svg>
+              <span class="visual-caption">Teams were holding information others needed — the citizen experience was the downstream consequence of internal fragmentation</span>
+            </div>
+            <div class="visual-block">
+              <!-- SVG: Blueprint Strip with Pain/Opportunity markers -->
+              <svg viewBox="0 0 400 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">CURRENT-STATE BLUEPRINT — KEY FINDINGS</text>
+                <!-- Journey stages -->
+                <rect x="8"   y="28" width="60" height="28" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="38"  y="44" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Birth</text>
+                <text x="38"  y="53" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Event</text>
+                <path d="M68 42 L78 42" stroke="#5B9BD5" stroke-width="1.5"/><path d="M74 38 L82 42 L74 46" fill="#5B9BD5"/>
+                <rect x="82"  y="28" width="60" height="28" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="112" y="44" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Hospital</text>
+                <text x="112" y="53" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Notify</text>
+                <path d="M142 42 L152 42" stroke="#5B9BD5" stroke-width="1.5"/><path d="M148 38 L156 42 L148 46" fill="#5B9BD5"/>
+                <rect x="156" y="28" width="60" height="28" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="186" y="44" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Registry</text>
+                <text x="186" y="53" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Intake</text>
+                <path d="M216 42 L226 42" stroke="#5B9BD5" stroke-width="1.5"/><path d="M222 38 L230 42 L222 46" fill="#5B9BD5"/>
+                <rect x="230" y="28" width="60" height="28" rx="2" fill="#fff0ef" stroke="#c0392b" stroke-width="1"/>
+                <text x="260" y="44" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#c0392b">Internal</text>
+                <text x="260" y="53" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#c0392b">Processing</text>
+                <path d="M290 42 L304 42" stroke="#5B9BD5" stroke-width="1.5"/><path d="M300 38 L308 42 L300 46" fill="#5B9BD5"/>
+                <rect x="308" y="28" width="84" height="28" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="350" y="44" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Certificate</text>
+                <text x="350" y="53" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#1B2A4A">Issued</text>
+                <!-- Pain markers -->
+                <text x="112" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#c0392b">!</text>
+                <text x="260" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#c0392b">!</text>
+                <text x="350" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#c0392b">!</text>
+                <!-- Opportunity markers -->
+                <text x="38"  y="72" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#2E75B6">&#x25CB;</text>
+                <text x="186" y="72" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#2E75B6">&#x25CB;</text>
+                <!-- Legend -->
+                <text x="8"   y="96" font-family="system-ui,sans-serif" font-size="7.5" fill="#c0392b">!  Pain point (VoE-validated)</text>
+                <text x="8"   y="108" font-family="system-ui,sans-serif" font-size="7.5" fill="#2E75B6">&#x25CB;  Opportunity flagged</text>
+                <text x="200" y="96" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">Red stage = primary silo location identified</text>
+              </svg>
+              <span class="visual-caption">The blueprint was the first time the organisation had seen its own service mapped end-to-end — that visibility alone changed the conversation</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CARD 5: LocalPeople / Aged Health ── -->
+    <div class="work-card reveal">
+      <div class="work-card-client">LocalPeople &mdash; Dept of Health</div>
+      <h3 class="work-card-title">Aged Health UX Evaluation &amp; Design</h3>
+      <p class="work-card-body">Contracted to establish a compliance baseline for digital tools used across aged health service pathways — tools that had never been assessed against federal government accessibility and usability policy. Designed a structured heuristic evaluation programme, trained junior designers to run it, and synthesised findings into a prioritised remediation roadmap.</p>
+      <div class="work-card-outcome">
+        <svg class="outcome-icon" viewBox="0 0 16 16" fill="none"><path d="M3 13l3-3 2.5 2.5L13 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Mentoring programme directly contributed to the agency securing additional project scope.</span>
+      </div>
+      <div class="work-card-tags">
+        <span class="work-tag">Heuristic Analysis</span>
+        <span class="work-tag">Accessibility</span>
+        <span class="work-tag">Mentorship</span>
+        <span class="work-tag">Service Mapping</span>
+      </div>
+      <div class="card-explore-hint" aria-hidden="true">Explore this project <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="card-expanded-content">
+        <div class="expanded-inner">
+          <div class="expanded-narrative">
+            <button class="card-close" aria-label="Close">&#x2715;</button>
+            <span class="narrative-chapter">The Problem</span>
+            <p>A suite of digital tools used across aged health service pathways — registration, referral, case management — had never been assessed against federal government accessibility and usability policy. Nobody knew how non-compliant they were, or how much effort it would take to fix them. You can't scope a remediation without a baseline, and nobody had one.</p>
+            <span class="narrative-chapter">The Approach</span>
+            <p>I designed a structured heuristic evaluation programme and used it as a development opportunity for junior designers embedded on the client side — walking them through the evaluation framework, then tasking them with systematically auditing each tool across the affected service areas. What came back was a prioritised list of failures ranked by severity and frequency of use. I synthesised that into a remediation roadmap that gave the client a clear picture of what needed fixing first and why.</p>
+            <span class="narrative-chapter">The Result</span>
+            <p>The agency secured additional project scope directly off the back of the mentoring programme — the client saw that the team's capability had lifted, not just that the audit had been completed. That's what happens when you structure junior work as a genuine learning experience rather than a delegation exercise.</p>
+          </div>
+          <div class="expanded-visuals">
+            <div class="visual-block">
+              <!-- SVG: Severity / Frequency Matrix -->
+              <svg viewBox="0 0 400 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">COMPLIANCE FINDINGS — SEVERITY &times; FREQUENCY</text>
+                <!-- Axes -->
+                <line x1="60" y1="20" x2="60"  y2="158" stroke="#d0e4f5" stroke-width="1.5"/>
+                <line x1="60" y1="158" x2="392" y2="158" stroke="#d0e4f5" stroke-width="1.5"/>
+                <!-- Axis labels -->
+                <text x="10" y="90" font-family="system-ui,sans-serif" font-size="8" fill="#4A6080" transform="rotate(-90,10,90)">SEVERITY</text>
+                <text x="30" y="28"  font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">Critical</text>
+                <text x="30" y="90"  font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">Major</text>
+                <text x="30" y="152" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">Minor</text>
+                <text x="200" y="174" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#4A6080">FREQUENCY OF USE &#x2192;</text>
+                <text x="80"  y="174" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">Rare</text>
+                <text x="360" y="174" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">Daily</text>
+                <!-- Priority quadrant highlight (top-right) -->
+                <rect x="226" y="20" width="166" height="69" rx="2" fill="#fff6f5" opacity="0.8"/>
+                <text x="309" y="52" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#c0392b" font-weight="500">Priority</text>
+                <text x="309" y="63" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#c0392b">remediation</text>
+                <!-- Dots — critical + high freq cluster -->
+                <circle cx="310" cy="32"  r="5" fill="#c0392b" opacity="0.8"/>
+                <circle cx="340" cy="38"  r="5" fill="#c0392b" opacity="0.8"/>
+                <circle cx="360" cy="28"  r="5" fill="#c0392b" opacity="0.8"/>
+                <circle cx="285" cy="45"  r="5" fill="#c0392b" opacity="0.7"/>
+                <circle cx="370" cy="55"  r="5" fill="#c0392b" opacity="0.7"/>
+                <!-- Major severity dots -->
+                <circle cx="200" cy="90"  r="4" fill="#5B9BD5" opacity="0.7"/>
+                <circle cx="250" cy="84"  r="4" fill="#5B9BD5" opacity="0.7"/>
+                <circle cx="160" cy="98"  r="4" fill="#5B9BD5" opacity="0.7"/>
+                <circle cx="330" cy="96"  r="4" fill="#5B9BD5" opacity="0.6"/>
+                <!-- Minor dots -->
+                <circle cx="100" cy="140" r="4" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <circle cx="140" cy="148" r="4" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <circle cx="180" cy="138" r="4" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <!-- Legend -->
+                <circle cx="72" cy="175" r="4" fill="#c0392b"/>
+                <text x="82" y="179" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">Critical / non-compliant</text>
+                <circle cx="190" cy="175" r="4" fill="#5B9BD5"/>
+                <text x="200" y="179" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">Major</text>
+                <circle cx="250" cy="175" r="4" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="260" y="179" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">Minor</text>
+              </svg>
+              <span class="visual-caption">The severity/frequency matrix determined the remediation sequence — highest-traffic, most-broken flows came first</span>
+            </div>
+            <div class="visual-block">
+              <!-- SVG: Heuristic Evaluation Framework -->
+              <svg viewBox="0 0 400 148" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">EVALUATION FRAMEWORK — AUDIT CATEGORIES</text>
+                <!-- Category rows -->
+                <rect x="8"   y="22" width="144" height="20" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="80"  y="35" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Visibility of System Status</text>
+                <rect x="160" y="22" width="72"  height="20" rx="2" fill="#c0392b"/>
+                <text x="196" y="35" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="white">Critical</text>
+
+                <rect x="8"   y="48" width="144" height="20" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="80"  y="61" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">User Control &amp; Freedom</text>
+                <rect x="160" y="48" width="56"  height="20" rx="2" fill="#5B9BD5"/>
+                <text x="188" y="61" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="white">Major</text>
+
+                <rect x="8"   y="74" width="144" height="20" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="80"  y="87" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Error Prevention</text>
+                <rect x="160" y="74" width="80"  height="20" rx="2" fill="#c0392b"/>
+                <text x="200" y="87" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="white">Critical</text>
+
+                <rect x="8"   y="100" width="144" height="20" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="80"  y="113" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Accessibility (WCAG)</text>
+                <rect x="160" y="100" width="88"  height="20" rx="2" fill="#c0392b"/>
+                <text x="204" y="113" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="white">Critical</text>
+
+                <rect x="8"   y="126" width="144" height="20" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="80"  y="139" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#1B2A4A">Consistency &amp; Standards</text>
+                <rect x="160" y="126" width="44"  height="20" rx="2" fill="#d0e4f5" stroke="#5B9BD5" stroke-width="1"/>
+                <text x="182" y="139" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#4A6080">Minor</text>
+
+                <!-- Legend -->
+                <text x="260" y="60"  font-family="system-ui,sans-serif" font-size="7.5" fill="#4A6080">Bar length = issue volume</text>
+                <text x="260" y="80"  font-family="system-ui,sans-serif" font-size="7.5" fill="#4A6080">Junior designers ran</text>
+                <text x="260" y="91"  font-family="system-ui,sans-serif" font-size="7.5" fill="#4A6080">each row independently</text>
+                <text x="260" y="115" font-family="system-ui,sans-serif" font-size="7.5" fill="#c0392b">&#x25A0; Critical (fed.gov breach)</text>
+                <text x="260" y="128" font-family="system-ui,sans-serif" font-size="7.5" fill="#5B9BD5">&#x25A0; Major (usability failure)</text>
+                <text x="260" y="141" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">&#x25A0; Minor (improvement)</text>
+              </svg>
+              <span class="visual-caption">Teaching junior designers to run the audit wasn't a shortcut — it was deliberate capability-building that changed what the client thought the agency could do</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CARD 6: Buyers Agent ── -->
+    <div class="work-card reveal">
+      <div class="work-card-client">Independent Project</div>
+      <h3 class="work-card-title">Buyers Agent Property Search Tool</h3>
+      <p class="work-card-body">Designed and built an end-to-end property intelligence terminal for a private buyers agent launching his own brand. Scoped requirements through user interviews, designed the interface, and developed a working React application with Firebase backend — integrating Google Maps API for proximity data and combining property search, CRM, and meeting scheduling into a single iPad tool.</p>
+      <div class="work-card-outcome">
+        <svg class="outcome-icon" viewBox="0 0 16 16" fill="none"><path d="M3 13l3-3 2.5 2.5L13 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Functional POC delivered in under a month. Demonstrates full-stack design and development capability.</span>
+      </div>
+      <div class="work-card-tags">
+        <span class="work-tag">React</span>
+        <span class="work-tag">Firebase</span>
+        <span class="work-tag">Google Maps API</span>
+        <span class="work-tag">Product Design</span>
+        <span class="work-tag">CRM Design</span>
+      </div>
+      <div class="card-explore-hint" aria-hidden="true">Explore this project <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="card-expanded-content">
+        <div class="expanded-inner">
+          <div class="expanded-narrative">
+            <button class="card-close" aria-label="Close">&#x2715;</button>
+            <span class="narrative-chapter">The Problem</span>
+            <p>A private buyers agent launching his own brand was spending the majority of his working week on tasks that weren't his core skill: scraping property data from multiple sources, cleaning and comparing it, maintaining client records across spreadsheets, and managing his own calendar. By the time he got to a client meeting — the part of his work that actually differentiated him — he was time-poor and under-prepared.</p>
+            <span class="narrative-chapter">The Approach</span>
+            <p>I started with user interviews. We mapped exactly where his time was going and what decisions he was making manually that could be supported with better tooling. The brief that emerged was specific: a single terminal on his iPad combining a property search and listing tool (built around his cached property set with Google Maps proximity data), a CRM for clients and vendors, and a planning and scheduling layer with AI-assisted meeting prep and admin automation. I designed the interface, built it in React with a Firebase backend, and shipped a working product.</p>
+            <span class="narrative-chapter">The Result</span>
+            <p>A functional proof-of-concept delivered in under a month. More importantly, it demonstrates something the rest of this portfolio doesn't: the ability to move from a user problem all the way to a working product without handing off to a development team.</p>
+          </div>
+          <div class="expanded-visuals">
+            <div class="visual-block">
+              <!-- SVG: Time Breakdown Before -->
+              <svg viewBox="0 0 400 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">WHERE THE TIME ACTUALLY WENT — BEFORE THE TOOL</text>
+                <!-- Segmented bar -->
+                <rect x="8"   y="30" width="140" height="36" rx="2" fill="#c0392b" opacity="0.75"/>
+                <text x="78"  y="50" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">Data Collection</text>
+                <text x="78"  y="60" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">35%</text>
+                <rect x="150" y="30" width="96"  height="36" rx="2" fill="#c0392b" opacity="0.55"/>
+                <text x="198" y="50" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">Analysis</text>
+                <text x="198" y="60" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">24%</text>
+                <rect x="248" y="30" width="80"  height="36" rx="2" fill="#5B9BD5" opacity="0.65"/>
+                <text x="288" y="50" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">Admin</text>
+                <text x="288" y="60" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">20%</text>
+                <rect x="330" y="30" width="62"  height="36" rx="2" fill="#2E75B6"/>
+                <text x="361" y="50" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">Client</text>
+                <text x="361" y="60" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white">21%</text>
+                <!-- Labels below -->
+                <text x="78"  y="82" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">Manual scraping</text>
+                <text x="78"  y="91" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">&amp; spreadsheets</text>
+                <text x="198" y="82" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">Cleaning &amp;</text>
+                <text x="198" y="91" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">comparing data</text>
+                <text x="288" y="82" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">Scheduling &amp;</text>
+                <text x="288" y="91" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#7A90A8">comms</text>
+                <text x="361" y="82" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#2E75B6" font-weight="500">High-value</text>
+                <text x="361" y="91" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#2E75B6" font-weight="500">meetings</text>
+                <text x="200" y="115" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#c0392b">79% of working time was not client-facing</text>
+              </svg>
+              <span class="visual-caption">User interviews mapped where every hour was going — the problem wasn't motivation, it was tooling</span>
+            </div>
+            <div class="visual-block">
+              <!-- SVG: App Module Architecture -->
+              <svg viewBox="0 0 400 148" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="200" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7A90A8" letter-spacing="0.1em">THE THREE-MODULE TERMINAL</text>
+                <!-- Unified data rail -->
+                <rect x="8" y="120" width="384" height="14" rx="2" fill="#1B2A4A"/>
+                <text x="200" y="130" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="rgba(255,255,255,0.65)">Unified data layer — Firebase + Google Maps API</text>
+                <!-- Module 1: Property -->
+                <rect x="8"   y="28" width="116" height="84" rx="3" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1.5"/>
+                <rect x="8"   y="28" width="116" height="20" rx="3" fill="#2E75B6"/>
+                <text x="66"  y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white" font-weight="500">Property</text>
+                <text x="22"  y="62" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Cached listings</text>
+                <text x="22"  y="73" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Suburb search</text>
+                <text x="22"  y="84" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Maps proximity</text>
+                <text x="22"  y="95" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Value estimates</text>
+                <line x1="66" y1="112" x2="66" y2="120" stroke="#5B9BD5" stroke-width="1"/>
+                <!-- Module 2: CRM -->
+                <rect x="142" y="28" width="116" height="84" rx="3" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1.5"/>
+                <rect x="142" y="28" width="116" height="20" rx="3" fill="#2E75B6"/>
+                <text x="200" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white" font-weight="500">CRM</text>
+                <text x="156" y="62" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Client profiles</text>
+                <text x="156" y="73" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Vendor records</text>
+                <text x="156" y="84" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Notes &amp; activity</text>
+                <text x="156" y="95" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Deal tracking</text>
+                <line x1="200" y1="112" x2="200" y2="120" stroke="#5B9BD5" stroke-width="1"/>
+                <!-- Module 3: Planning -->
+                <rect x="276" y="28" width="116" height="84" rx="3" fill="#eef4fb" stroke="#5B9BD5" stroke-width="1.5"/>
+                <rect x="276" y="28" width="116" height="20" rx="3" fill="#2E75B6"/>
+                <text x="334" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="white" font-weight="500">Planning</text>
+                <text x="290" y="62" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Meeting scheduler</text>
+                <text x="290" y="73" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; AI meeting prep</text>
+                <text x="290" y="84" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Admin automation</text>
+                <text x="290" y="95" font-family="system-ui,sans-serif" font-size="7" fill="#4A6080">&#x2022; Calendar sync</text>
+                <line x1="334" y1="112" x2="334" y2="120" stroke="#5B9BD5" stroke-width="1"/>
+              </svg>
+              <span class="visual-caption">Three tools, one interface — the brief was to eliminate context-switching, not just digitise existing workflows</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── ABOUT ──────────────────────────────────── -->
+<section id="about">
+  <div class="section-label">About</div>
+  <h2 class="section-title">A non-linear path<br>to a coherent point of view.</h2>
+  <div class="about-grid">
+    <div class="about-body">
+      <p>My career has not followed a straight line, and I think that is the most useful thing about me. I started in industrial and product design, moved into experience design at agencies, spent time in law enforcement, worked in cybersecurity compliance, and have consistently found my way back to the same thing: <strong>designing systems that work better for the people using them.</strong></p>
+      <p>That range gives me something most designers do not get from a linear career: genuine comfort in ambiguous, technically complex environments where the brief keeps changing. I have presented design decisions to senior military officers, built business cases from scratch to convince fintech founders, and conducted user research in contexts where the people I was talking to had never been asked what they thought before.</p>
+      <p>I am not interested in design as decoration. I am interested in <strong>design as the mechanism through which complex systems become usable</strong> and I am most useful on the kind of engagements where that distinction matters.</p>
+      <p>Currently based in Sydney. Open to opportunities across consulting, enterprise, and product environments.</p>
+    </div>
+
+    <!-- Interactive career timeline -->
+    <div class="career-timeline reveal">
+      <div class="timeline-heading">Career Journey</div>
+      <div class="timeline-track">
+
+        <div class="t-node t-node--early">
+          <div class="t-dot"></div>
+          <span class="t-year">2014</span>
+          <span class="t-title">Product Designer — Infasecure</span>
+          <span class="t-detail">Designed infant carrier adaptors and child car seat systems; products remain market successes a decade on.</span>
+        </div>
+
+        <div class="t-node t-node--early">
+          <div class="t-dot"></div>
+          <span class="t-year">2014</span>
+          <span class="t-title">Co-author, ACM Publication</span>
+          <span class="t-detail">Child Restraint Systems &amp; Driver Distraction — peer-reviewed research. Dean's Merit List, University of Western Sydney.</span>
+        </div>
+
+        <div class="t-node t-node--early">
+          <div class="t-dot"></div>
+          <span class="t-year">2015</span>
+          <span class="t-title">Product Designer — Gamma Illumination</span>
+          <span class="t-detail">Consolidated 200+ packaging SKUs into 12 eco-friendly, customisable options across novel lighting products.</span>
+        </div>
+
+        <div class="t-node t-node--early">
+          <div class="t-dot"></div>
+          <span class="t-year">2015</span>
+          <span class="t-title">Bachelor of Industrial Design (Hons)</span>
+          <span class="t-detail">University of Western Sydney. Systems-level product design roots that underpin a rigorous UX practice.</span>
+        </div>
+
+        <div class="t-node t-node--early">
+          <div class="t-dot"></div>
+          <span class="t-year">2015 – 2016</span>
+          <span class="t-title">Designer &amp; Project Manager — Expo Centric</span>
+          <span class="t-detail">End-to-end design and delivery of exhibition display spaces. Led the Volvo exhibit at Brisbane Truck Show (40K+ visitors).</span>
+        </div>
+
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <span class="t-year">2016 – 2018</span>
+          <span class="t-title">Consultant, Innovation &amp; R&amp;D — Ernst &amp; Young</span>
+          <span class="t-detail">Delivered 40+ client engagements. Secured millions in R&amp;D tax credits by translating complex industrial design projects into defensible business cases.</span>
+        </div>
+
+        <div class="t-node t-node--minor">
+          <div class="t-dot"></div>
+          <span class="t-year">2016 – 2019</span>
+          <span class="t-title">Infantry Soldier — Army Reserves (ADF)</span>
+          <span class="t-detail">Part-time service alongside design career. Operational training in time-critical, decision-dense environments.</span>
+        </div>
+
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <span class="t-year">Feb – Oct 2019</span>
+          <span class="t-title">Experience Designer — Agency Xi</span>
+          <span class="t-detail">Government &amp; education service design. Foundational UX research that enabled the agency to secure the $1M ADF Phase 2 project.</span>
+        </div>
+
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <span class="t-year">Oct 2019 – Jan 2020</span>
+          <span class="t-title">Experience Designer — VMLY&amp;R (Phase 1)</span>
+          <span class="t-detail">ADF Careers platform research phase: service safaris, stakeholder interviews, journey mapping.</span>
+        </div>
+
+        <div class="t-node t-node--minor">
+          <div class="t-dot"></div>
+          <span class="t-year">2020 – 2021</span>
+          <span class="t-title">Police Officer — NSW Police Force</span>
+          <span class="t-detail">Commissioner's Emergency Commendation (2021). Associate Degree, Policing Practice — Distinction, Executive Dean's Award, Charles Sturt University.</span>
+        </div>
+
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <span class="t-year">Nov 2021 – Jan 2022</span>
+          <span class="t-title">Senior Service Designer — NSW Registry BDM</span>
+          <span class="t-detail">First-ever end-to-end blueprint of the birth certificate service. Insights triggered a digital transformation across all registry certificate types.</span>
+        </div>
+
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <span class="t-year">Aug 2022 – Sep 2023</span>
+          <span class="t-title">Experience Designer — VMLY&amp;R (Phase 2)</span>
+          <span class="t-detail">Co-led the $1M+ ADF Careers digital transformation. 20% uplift in application completion. Personalisation features extended beyond original scope.</span>
+        </div>
+
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <span class="t-year">Apr – Nov 2024</span>
+          <span class="t-title">Consultant, GRC &amp; AI Tool Design — AssuranceLab</span>
+          <span class="t-detail">Designed and deployed AI-powered internal tooling. Supported the team through a successful company acquisition.</span>
+        </div>
+
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <span class="t-year">Nov 2024 – Mar 2025</span>
+          <span class="t-title">Product Designer — Freelance</span>
+          <span class="t-detail">Independent product design and AI prototyping. Built the buyers agent property intelligence terminal end-to-end.</span>
+        </div>
+
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <span class="t-year">Apr – Jul 2025</span>
+          <span class="t-title">UX / Service Designer — LocalPeople</span>
+          <span class="t-detail">Federal government client (Dept of Health). Aged health digital tooling — heuristic evaluation, service mapping, junior designer mentorship.</span>
+        </div>
+
+        <div class="t-node t-node--minor t-node--current">
+          <div class="t-dot"></div>
+          <span class="t-year">Aug 2025 – Present</span>
+          <span class="t-title">Officer Recruit — Australian Border Force</span>
+          <span class="t-detail">BFORT training programme. On track for graduation Aug 2026. Available with notice for the right opportunity.</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SKILLS ─────────────────────────────────── -->
+<section id="skills">
+  <div class="section-label">Capabilities</div>
+  <h2 class="section-title">What I bring to the table.</h2>
+  <p class="section-intro">A combination of creative and analytical capability developed across a decade of delivering in regulated, technically complex, and often ambiguous environments.</p>
+  <div class="skills-grid">
+
+    <!-- Research & Discovery -->
+    <div class="skill-group reveal">
+      <div class="skill-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <circle cx="20" cy="20" r="12"/>
+          <line x1="29" y1="29" x2="42" y2="42"/>
+        </svg>
+      </div>
+      <div class="skill-group-title">Research &amp; Discovery</div>
+      <ul class="skill-list">
+        <li>User interviews &amp; contextual inquiry</li>
+        <li>Heuristic analysis</li>
+        <li>Usability testing &amp; A/B testing</li>
+        <li>Journey mapping &amp; blueprinting</li>
+        <li>Voice of employee research</li>
+        <li>Stakeholder interviews</li>
+      </ul>
+    </div>
+
+    <!-- Design & Prototyping -->
+    <div class="skill-group reveal">
+      <div class="skill-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <path d="M10 38 L22 10 L36 24 Z"/>
+          <path d="M22 10 L36 24"/>
+          <line x1="10" y1="38" x2="5" y2="43"/>
+        </svg>
+      </div>
+      <div class="skill-group-title">Design &amp; Prototyping</div>
+      <ul class="skill-list">
+        <li>Information architecture</li>
+        <li>Wireframing &amp; rapid prototyping</li>
+        <li>Responsive &amp; mobile-first design</li>
+        <li>Interaction design</li>
+        <li>Service blueprinting</li>
+        <li>Figma &nbsp;&middot;&nbsp; Miro &nbsp;&middot;&nbsp; InVision</li>
+      </ul>
+    </div>
+
+    <!-- Facilitation & Strategy -->
+    <div class="skill-group reveal">
+      <div class="skill-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <circle cx="24" cy="12" r="5"/>
+          <circle cx="10" cy="32" r="5"/>
+          <circle cx="38" cy="32" r="5"/>
+          <line x1="24" y1="17" x2="10" y2="27"/>
+          <line x1="24" y1="17" x2="38" y2="27"/>
+          <line x1="15" y1="32" x2="33" y2="32"/>
+        </svg>
+      </div>
+      <div class="skill-group-title">Facilitation &amp; Strategy</div>
+      <ul class="skill-list">
+        <li>Workshop design &amp; delivery</li>
+        <li>Stakeholder management</li>
+        <li>Business case development</li>
+        <li>Design thinking &amp; HCD</li>
+        <li>Agile methodology</li>
+        <li>Senior stakeholder briefings</li>
+      </ul>
+    </div>
+
+    <!-- Technical -->
+    <div class="skill-group reveal">
+      <div class="skill-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <polyline points="16,12 6,24 16,36"/>
+          <polyline points="32,12 42,24 32,36"/>
+          <line x1="20" y1="34" x2="28" y2="14"/>
+        </svg>
+      </div>
+      <div class="skill-group-title">Technical</div>
+      <ul class="skill-list">
+        <li>React &amp; frontend development</li>
+        <li>Firebase &amp; Google Maps API</li>
+        <li>AI tool design &amp; prompting</li>
+        <li>Adobe CC (Illustrator, Photoshop)</li>
+        <li>3D digital sculpting</li>
+        <li>SOC2 compliance &amp; GRC</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── CONTACT ────────────────────────────────── -->
+<section id="contact">
+  <div class="section-label">Contact</div>
+  <h2 class="section-title">Let's work together.</h2>
+  <p class="section-intro">Open to opportunities in Sydney and beyond. Happy to share more detail on any project or talk through how my background fits what your team is working on.</p>
+  <div class="contact-actions">
+    <button class="contact-link" id="open-contact-modal">
+      Get in touch
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <a href="https://github.com/jtfe11-cpu" target="_blank" rel="noopener" class="contact-link-alt">
+      GitHub
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1C3.69 1 1 3.69 1 7c0 2.65 1.72 4.9 4.1 5.69.3.06.41-.13.41-.29v-1.01c-1.67.36-2.02-.8-2.02-.8-.27-.7-.67-.88-.67-.88-.55-.37.04-.36.04-.36.6.04.92.62.92.62.54.92 1.41.65 1.76.5.05-.39.21-.65.38-.8-1.33-.15-2.73-.67-2.73-2.96 0-.65.23-1.19.62-1.6-.06-.15-.27-.77.06-1.6 0 0 .51-.16 1.66.62A5.78 5.78 0 017 4.36c.51 0 1.03.07 1.51.2 1.15-.78 1.66-.62 1.66-.62.33.83.12 1.45.06 1.6.38.41.62.95.62 1.6 0 2.3-1.4 2.8-2.74 2.95.22.19.41.56.41 1.13v1.67c0 .16.11.35.41.29A6.003 6.003 0 0013 7c0-3.31-2.69-6-6-6z" fill="currentColor"/></svg>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <p>Joel · UX &amp; Experience Designer</p>
+  <p>Sydney, NSW, Australia</p>
+</footer>
+
+<script>
+/* ────────────────────────────────────────────────
+   0. SCROLL-DRIVEN HERO REVEAL
+   ──────────────────────────────────────────────────
+   The left panel starts at 100% width (full screen).
+   As the user scrolls through the 200vh hero-container,
+   progress goes 0 → 1, shrinking the left to ~50%
+   and fading/sliding in the right panel.
+   ──────────────────────────────────────────────── */
+(function () {
+  const container  = document.querySelector('.hero-container');
+  const heroLeft   = document.querySelector('.hero-left');
+  const heroRight  = document.querySelector('.hero-right');
+  if (!container || !heroLeft || !heroRight) return;
+
+  // Only run scroll-driven animation on desktop; on mobile use IntersectionObserver
+  const mql = window.matchMedia('(max-width: 900px)');
+  if (mql.matches) {
+    // Mobile fallback: trigger counters via scroll into view
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { animateCounter(e.target); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.stat-num[data-target]').forEach(el => io.observe(el));
+    return;
+  }
+
+  const FINAL_LEFT_PCT = 50;   // left panel's resting width %
+  const FADE_START     = 0.25; // right panel starts fading in at this progress
+
+  function easeInOut(t) {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function update() {
+    const scrollY    = window.scrollY;
+    // animRange: the 100vh of scroll space beyond the hero's own height
+    const animRange  = container.offsetHeight - window.innerHeight;
+    const raw        = Math.min(Math.max(scrollY / animRange, 0), 1);
+    const progress   = easeInOut(raw);
+
+    // ── Left panel width: 100% → FINAL_LEFT_PCT%
+    const leftPct = 100 - progress * (100 - FINAL_LEFT_PCT);
+    heroLeft.style.width = leftPct + '%';
+
+    // ── Right panel: fade + slide in once progress crosses threshold
+    if (raw > FADE_START) {
+      const revealRaw = (raw - FADE_START) / (1 - FADE_START);
+      const revealP   = Math.min(revealRaw, 1);
+      heroRight.style.opacity   = revealP;
+      heroRight.style.transform = `translateX(${(1 - revealP) * 28}px)`;
+      heroRight.classList.add('revealed');
+      // Fire counters once, as soon as the panel starts to appear
+      if (!window._countersStarted) {
+        window._countersStarted = true;
+        document.querySelectorAll('.stat-num[data-target]').forEach(animateCounter);
+      }
+    } else {
+      heroRight.style.opacity   = 0;
+      heroRight.style.transform = 'translateX(28px)';
+      heroRight.classList.remove('revealed');
+    }
+
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
+
+
+/* ────────────────────────────────────────────────
+   1. PARTICLE CANVAS — hero background
+   ──────────────────────────────────────────────── */
+(function () {
+  const canvas = document.getElementById('hero-particles');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, particles;
+
+  const COUNT = 38;
+  const MAX_DIST = 130;
+  const DOT_COLOR = 'rgba(91,155,213,';
+  const LINE_COLOR = 'rgba(91,155,213,';
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function makeParticle() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 1.5 + 1,
+    };
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({ length: COUNT }, makeParticle);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Update positions
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+    });
+
+    // Draw connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MAX_DIST) {
+          const alpha = (1 - dist / MAX_DIST) * 0.25;
+          ctx.beginPath();
+          ctx.strokeStyle = LINE_COLOR + alpha + ')';
+          ctx.lineWidth = 1;
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw dots
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = DOT_COLOR + '0.55)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); });
+  init();
+  draw();
+})();
+
+
+/* ────────────────────────────────────────────────
+   2. COUNTER ANIMATION — called by hero scroll reveal
+   ──────────────────────────────────────────────── */
+function animateCounter(el) {
+  const DURATION = 1600;
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const target = parseInt(el.dataset.target, 10);
+  const start  = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / DURATION, 1);
+    el.textContent = prefix + Math.round(easeOut(p) * target) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+
+/* ────────────────────────────────────────────────
+   3. ANIMATED SKILL ICONS — draw-in on scroll
+   ──────────────────────────────────────────────── */
+(function () {
+  const skillGroups = document.querySelectorAll('.skill-group');
+  const iconObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('icon-drawn'), i * 120);
+        iconObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  skillGroups.forEach(el => iconObserver.observe(el));
+})();
+
+
+/* ────────────────────────────────────────────────
+   4. REVEAL ON SCROLL — existing cards + timeline
+   ──────────────────────────────────────────────── */
+(function () {
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => revealObserver.observe(el));
+})();
+
+
+/* ────────────────────────────────────────────────
+   5. INTERACTIVE TIMELINE — click to expand nodes
+   ──────────────────────────────────────────────── */
+(function () {
+  document.querySelectorAll('.t-node').forEach(node => {
+    node.addEventListener('click', () => {
+      const wasOpen = node.classList.contains('open');
+      // Close all others
+      document.querySelectorAll('.t-node.open').forEach(n => n.classList.remove('open'));
+      if (!wasOpen) node.classList.add('open');
+    });
+  });
+})();
+
+
+/* ────────────────────────────────────────────────
+   6. EXPANDABLE WORK CARDS — click to open/close
+   ──────────────────────────────────────────────── */
+(function () {
+  const cards = document.querySelectorAll('.work-card');
+
+  function collapseAll(except) {
+    cards.forEach(c => {
+      if (c !== except) c.classList.remove('expanded');
+    });
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('click', function (e) {
+      // If the close button was clicked, collapse this card
+      if (e.target.closest('.card-close')) {
+        card.classList.remove('expanded');
+        // Scroll card back into view
+        setTimeout(() => {
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 50);
+        return;
+      }
+
+      // If already expanded, clicking card body does nothing (allow text selection etc.)
+      if (card.classList.contains('expanded')) return;
+
+      // Collapse any other open card, then expand this one
+      collapseAll(card);
+      card.classList.add('expanded');
+
+      // After the CSS transition kicks in, scroll so the card is visible
+      setTimeout(() => {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    });
+  });
+})();
+
+
+/* ────────────────────────────────────────────────
+   7. NAV ACTIVE STATE — highlight on scroll
+   ──────────────────────────────────────────────── */
+(function () {
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(a => {
+          a.classList.toggle('nav-active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-35% 0px -55% 0px' });
+  sections.forEach(s => obs.observe(s));
+})();
+
+
+/* ────────────────────────────────────────────────
+   8. CONTACT MODAL — open / close / submit
+   ──────────────────────────────────────────────── */
+(function () {
+  const overlay   = document.getElementById('contact-modal-overlay');
+  const openBtn   = document.getElementById('open-contact-modal');
+  const closeBtn  = document.getElementById('modal-close-btn');
+  const form      = document.getElementById('contact-form');
+  const submitBtn = document.getElementById('form-submit-btn');
+
+  if (!overlay || !openBtn) return;
+
+  function openModal() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('cf-name').focus(), 350);
+  }
+  function closeModal() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Validate
+    const name    = form.querySelector('#cf-name');
+    const email   = form.querySelector('#cf-email');
+    const message = form.querySelector('#cf-message');
+    if (!name.value.trim() || !email.value.trim() || !message.value.trim()) return;
+
+    // Loading state
+    submitBtn.disabled = true;
+    submitBtn.classList.add('loading');
+
+    const data = new FormData(form);
+    // Append the real destination — hidden from rendered HTML
+    data.append('replyto', email.value);
+
+    try {
+      const res  = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: data });
+      const json = await res.json();
+
+      if (json.success) {
+        // Success state — replace form contents
+        const modal = overlay.querySelector('.contact-modal');
+        modal.innerHTML = `
+          <button class="modal-close" id="modal-close-sent" aria-label="Close">&#x2715;</button>
+          <div class="form-sent">
+            <div class="form-sent-icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <path d="M4 11.5l5 5 9-9" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h4>Message sent.</h4>
+            <p>Thanks for reaching out. I'll be in touch soon.</p>
+          </div>`;
+        document.getElementById('modal-close-sent').addEventListener('click', closeModal);
+      } else {
+        throw new Error('failed');
+      }
+    } catch {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('loading');
+      alert('Something went wrong. Please try again in a moment.');
+    }
+  });
+})();
+
+</script>
+
+<!-- ── CONTACT MODAL ───────────────────────── -->
+<div class="modal-overlay" id="contact-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+  <div class="contact-modal">
+    <button class="modal-close" id="modal-close-btn" aria-label="Close">&#x2715;</button>
+    <div class="modal-eyebrow">Get in touch</div>
+    <h3 class="modal-title" id="modal-heading">Let's talk.</h3>
+    <p class="modal-desc">Drop me a message and I'll come back to you directly.</p>
+    <form id="contact-form" novalidate>
+      <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_KEY">
+      <input type="hidden" name="subject" value="Portfolio enquiry">
+      <input type="hidden" name="from_name" value="Joel's Portfolio">
+      <div class="form-group">
+        <label for="cf-name">Name</label>
+        <input type="text" id="cf-name" name="name" required placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label for="cf-email">Email</label>
+        <input type="email" id="cf-email" name="email" required placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label for="cf-message">Message</label>
+        <textarea id="cf-message" name="message" required placeholder="What would you like to discuss?"></textarea>
+      </div>
+      <button type="submit" class="form-submit" id="form-submit-btn">
+        <span class="form-btn-text">Send message</span>
+        <span class="form-spinner"></span>
+      </button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>
